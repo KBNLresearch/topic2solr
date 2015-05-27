@@ -15,7 +15,7 @@ client = pymongo.MongoClient()
 db = client.topics
 coll = db.topic1
 
-solr_base_url = "http://rel-lb-solr-p200.dmz.kb.nl/solr/DDD_artikel/select/?wt=json&fl=uniqueKey"
+solr_base_url = ""
 #current_year = int(sys.argv[1])
 
 def mk_period(year):
