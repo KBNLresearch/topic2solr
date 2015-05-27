@@ -9,7 +9,7 @@ import fileinput
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-client = pymongo.MongoClient("192.87.165.3")
+client = pymongo.MongoClient()
 db = client.topics
 coll = db.topic1
 
