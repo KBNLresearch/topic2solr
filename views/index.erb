@@ -1,0 +1,175 @@
+<html>
+<head>
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+	<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+	<script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+	<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+	<script type="text/javascript">
+		var totals = false, unit = "perc", stats = false, lastAmount = 15;
+		function toggleUnit(el) {
+			unit = el.value;
+			if(stats) { render(); }
+		}
+
+		function getStats(amount) {
+			lastAmount = amount;
+			$("#visualisation").hide();
+			$("#spinner").show();
+			$.ajax("/stats", {
+				data: {amt: amount},
+				success: function(data) {
+					stats = data.sort(function(a,b) { return a._id - b._id});
+					render(stats);
+
+				}
+			});
+		}
+
+		function getWordStats() {
+			var words = $.map($("input.word:checked"), function(el, i) { return el.value; });
+			if(words.length === 0) { 
+
+				$("#num").html(lastAmount);
+				getStats(lastAmount);
+				return; 
+			}
+			$("#num").html("Huidige woordselectie: " + words.join(", "));
+
+			$("#visualisation").hide();
+			$("#spinner").show();
+			console.log(words);
+			$.ajax("/wordstats", {
+				data: {words: words},
+				success: function(data) {
+					stats = data.sort(function(a,b) { return a._id - b._id});
+					render(stats);
+
+				}
+			});
+		}
+
+		function normalizeStats() {
+			if(unit === "totals") {
+				return stats;
+			} else {
+				var newStats = [];
+				for(var i in stats) {
+					currentTotal = -1;
+					for(var j in  totals) {
+						if(totals[j].total_year === stats[i]._id) {
+							newStats.push({
+								_id: stats[i]._id,
+								total: (stats[i].total / totals[j].amount) * 100.0
+							});
+							break;
+						}
+					}
+				}
+				return newStats;
+			}
+		}
+
+		function render() {
+			var vis = d3.select("#visualisation"),
+				normalizedStats = normalizeStats(),
+				MAX = Math.max.apply(Math, normalizedStats.map(function(stat) { return stat.total})), 
+				YEAR_MIN = Math.min.apply(Math, normalizedStats.map(function(stat) { return stat._id})),
+				YEAR_MAX = Math.max.apply(Math, normalizedStats.map(function(stat) { return stat._id})),
+				WIDTH = 1000,
+				HEIGHT = 500,
+				MARGINS = {top: 40, right: 40, bottom: 40,left: 80},
+				xScale = d3.scale.linear().range([MARGINS.left, WIDTH - MARGINS.right]).domain([YEAR_MIN,YEAR_MAX]),
+				yScale = d3.scale.linear().range([HEIGHT - MARGINS.top, MARGINS.bottom]).domain([0,MAX]),
+				xAxis = d3.svg.axis().scale(xScale).tickFormat(d3.format("d")),
+				yAxis = d3.svg.axis().scale(yScale).orient("left");
+
+			vis.selectAll("*").remove();
+			if(stats.length === 0) {
+				$("#num").html("Geen resultaten gevonden");
+				return;
+			}
+			vis.append("svg:g")
+				.attr("transform", "translate(0," + (HEIGHT - MARGINS.bottom) + ")")
+				.call(xAxis);
+
+			vis.append("svg:g")
+				.attr("transform", "translate(" + (MARGINS.left) + ",0)")
+				.call(yAxis);
+
+			console.log(normalizedStats);
+			var lineGen = d3.svg.line()
+				.x(function(d) { return xScale(d._id); })
+				.y(function(d) { return yScale(d.total); });
+
+			vis.append('svg:path')
+				.attr('d', lineGen(normalizedStats))
+				.attr('stroke', 'green')
+				.attr('stroke-width', 2)
+				.attr('fill', 'none');
+			$("#visualisation").show();
+			$("#spinner").hide();
+		}
+	</script>
+</head>
+ 
+<body>
+	<div style="width:25%; float: left">
+		Aantal woorden uit topic model
+		<div id="slider">
+		</div>
+		<div id="num"></div>
+	</div>
+	<div style="width:25%; float: left">
+		<input type="radio" id="perc" name="units" value="perc" onchange="toggleUnit(this)" checked>
+		<label for="perc">Percentages</label>
+		<input type="radio" id="totals" name="units" value="totals" onchange="toggleUnit(this)" >
+		<label for="totals">Totalen</label>
+	</div>
+	<div id="keywords" style="width:50%; float: left">
+		Woordselectie: <button onclick="$('input.word').prop('checked', false); getStats(lastAmount)">Verwijder selectie</button>
+		<div>
+			<% @@keywords.each do |keyword| %>
+				<div style="display: inline-block">
+					<input id="<%=keyword %>" type="checkbox" class="word" value="<%= keyword %>" onclick="getWordStats()" />
+					<label for="<%=keyword %>"><%=keyword %></label>
+				</div>
+			<% end %>
+		</div>
+	</div>
+	<img id="spinner" src="/spinner.gif" />
+	<div style="width: 100%; clear: left">
+	</div>
+
+	<svg id="visualisation" width="1000" height="500"></svg>
+
+	<script type="text/javascript">
+		$("body > div").hide();
+
+
+		$.ajax("/totals", {
+			success: function(data) {
+				totals = data;
+				console.log(totals);
+				$("body > div").show();
+				init();
+			}
+		});
+
+		function init() {
+			var startAmount = 15;
+			$("#slider").slider({
+				min: 1, 
+				max: 33, 
+				orientation:"vertical", 
+				value: startAmount, 
+				slide: function(e, ui) { $("#num").html(ui.value);$('input.word').prop('checked', false); },
+				change: function(e, ui) { getStats(ui.value); },
+			});
+			$("#num").html(startAmount);
+			getStats(startAmount);
+		}
+	</script>
+</body>
+ 
+</html>
