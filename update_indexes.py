@@ -3,7 +3,7 @@
 import pymongo 
 import json
 
-client = pymongo.MongoClient("192.87.165.3")
+client = pymongo.MongoClient()
 
 db = client.topics
 
