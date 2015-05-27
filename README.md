@@ -5,6 +5,8 @@ Om lokaal te draaien op ubuntu:
 sudo apt-get install mongodb
 ```
 
+By default draait mongodb op localhost, poort 27017, voor kbresearch kun je het best aan WJ vragen om het ip-adres of in mijn home dir.
+
 load_topics.py
 ---
 Voert een scrape uit op solr van de woorden uit keywords.txt en vult de mongodb.
@@ -14,7 +16,7 @@ De volgende variabelen moeten nog geparameteriseerd worden:
 - startjaar en eindjaar (nu 1931 - 1998)
 - Het bronbestand voor de te zoeken woorden (of uit stdin of anderszins)
 
-By default draait mongodb op localhost, poort 27017, voor kbresearch kun je het best aan WJ vragen om het ip-adres of in mijn home dir.
+
 
 Datamodel:
 Een record in topic1:
