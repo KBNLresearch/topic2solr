@@ -5,7 +5,7 @@ require 'sinatra'
 require 'json'
 require 'mongo'
 
-@@client = Mongo::Connection.new("192.87.165.3")
+@@client = Mongo::Connection.new
 @@db = @@client['topics']
 @@coll = @@db['topic1']
 
