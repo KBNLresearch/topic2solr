@@ -16,6 +16,25 @@ De volgende variabelen moeten nog geparameteriseerd worden:
 
 By default draait mongodb op localhost, poort 27017, voor kbresearch kun je het best aan WJ vragen om het ip-adres of in mijn home dir.
 
+Datamodel:
+Een record in topic1:
+```
+{
+  "tokens": ["wetenschappelijke", "rol"], 
+  "year": 1995, 
+  "id": "ddd:010644822:mpeg21:a0122", 
+  "tok_amount": 2
+}
+```
+Jaartotaal in topic1 (om percentages te kunnen tonen):
+```
+{
+  "amount": 553179,
+  "total_year": 1901
+}
+```
+
+
 keywords.txt
 ---
 De woordenlijst
